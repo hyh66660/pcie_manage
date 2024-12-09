@@ -23,6 +23,8 @@ public:
     QLabel *pLabMtu;
     QLabel *pLabSrcMac;
     QLabel *pLabDestMac;
+    QLabel *pLabGroupSrcMac;
+    QLabel *pLabGroupDestMac;
     QLabel *pLabUnpackRxSpeed;
     QLabel *pLabGroupRxSpeed;
     QLabel *pLabUnpackTxSpeed;
@@ -38,8 +40,12 @@ public:
     QLineEdit *pLineEditMtuW;
     QLineEdit *pLineEditSrcMac;
     QLineEdit *pLineEditSrcMacW;
+    QLineEdit *pLineEditGroupSrcMac;
+    QLineEdit *pLineEditGroupSrcMacW;
     QLineEdit *pLineEditDestMac;
     QLineEdit *pLineEditDestMacW;
+    QLineEdit *pLineEditGroupDestMac;
+    QLineEdit *pLineEditGroupDestMacW;
     QLineEdit *pLineEditUnpackRxSpeed;
     QLineEdit *pLineEditGroupRxSpeed;
     QLineEdit *pLineEditUnpackTxSpeed;

@@ -58,10 +58,10 @@ MainWindow::MainWindow(QWidget *parent)
     //size_t dataBuffLen = 1024;  // 每个缓冲区的大小
 
     // 分配多个缓冲区
-    for (int i = 0; i < 11; ++i) {
+    for (int i = 0; i < 13; ++i) {
         pDataBuff[i] = (char*)_aligned_malloc(dataBuffLen, sys_info.dwPageSize);
     }
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 5; ++i) {
         pDataBuffw[i] = (char*)_aligned_malloc(dataBuffLen, sys_info.dwPageSize);
     }
 
@@ -89,12 +89,12 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    for (int i = 0; i < 11; ++i) {
+    for (int i = 0; i < 13; ++i) {
         if (pDataBuff[i]) {
             _aligned_free(pDataBuff[i]);
         }
     }
-    for (int i = 0; i < 3; ++i) {
+    for (int i = 0; i < 5; ++i) {
         if (pDataBuffw[i]) {
             _aligned_free(pDataBuffw[i]);
         }
@@ -104,13 +104,15 @@ MainWindow::~MainWindow()
 void MainWindow::initializeAddressAndTargets()
 {
     // 设置要读取的地址
-    addresses = {0x0004, 0x0008, 0x0010, 0x0000, 0x0004, 0x0008, 0x000C, 0x0010, 0x0014, 0x0018, 0x001C};
+    addresses = {0x0004, 0x0008, 0x0010, 0x0018, 0x0020, 0x0000, 0x0004, 0x0008, 0x000C, 0x0010, 0x0014, 0x0018, 0x001C};
 
     // 设置与之对应的目标 LineEdit
     targetLineEdits = {
         pUserUi->pPcieManage->pLineEditMtu,
         pUserUi->pPcieManage->pLineEditSrcMac,
         pUserUi->pPcieManage->pLineEditDestMac,
+        pUserUi->pPcieManage->pLineEditGroupSrcMac,
+        pUserUi->pPcieManage->pLineEditGroupDestMac,
         pUserUi->pPcieManage->pLineEditUnpackRxSpeed,
         pUserUi->pPcieManage->pLineEditUnpackTxSpeed,
         pUserUi->pPcieManage->pLineEditGroupRxSpeed,
@@ -146,7 +148,7 @@ void MainWindow::read_next_addresses()
     if(currentIndex==0){
         opt_mode = 1;
         opt_len = 2;
-    }else if(currentIndex==1 || currentIndex==2){
+    }else if(currentIndex==1 || currentIndex==2 || currentIndex==3 || currentIndex==4){
         opt_mode = 1;
         opt_len = 6;
     }else {
@@ -158,34 +160,10 @@ void MainWindow::read_next_addresses()
 
 }
 
-void MainWindow::processMacAddress(const QString& macStr, unsigned char* macBytes)
-{
-    // 去除冒号和空格等非十六进制字符
-    QString cleanMac = macStr;
-    cleanMac.remove(QRegExp("[:\\s]"));
-
-    // 确保输入的 MAC 地址长度为 12（6 字节 * 2 个字符）
-    if (cleanMac.length() != 12) {
-        qWarning() << "Invalid MAC address length!";
-        return;
-    }
-
-    // 将每对十六进制字符转换为字节
-    for (int i = 0; i < 6; ++i) {
-        bool ok;
-        macBytes[i] = cleanMac.mid(2 * i, 2).toUInt(&ok, 16);  // 每两位字符转为一个字节
-        if (!ok) {
-            qWarning() << "Invalid MAC address format!";
-            return;
-        }
-        //qDebug() << QString::number(macBytes[i], 16).rightJustified(2, '0').toUpper();  // 打印十六进制格式
-    }
-}
-
 void MainWindow::pcie_opt()
 {
     pTimer->stop();
-    unsigned int addr[3]={0x002C, 0x0030, 0x0038};
+    unsigned int addr[5]={0x002C, 0x0030, 0x0038, 0x0040, 0x0048};
     QPushButton *but = qobject_cast<QPushButton *>(sender());
 
     if(but == pUserUi->pPcieManage->pButWrite)
@@ -232,6 +210,28 @@ void MainWindow::pcie_opt()
                 opt_len = 0;
             }
         }
+
+        QString groupMacSrc = pUserUi->pPcieManage->pLineEditGroupSrcMacW->text();
+        if(groupMacSrc != ""){
+            QByteArray ba3;
+            ba3 = pUserUi->pPcieManage->pLineEditGroupSrcMacW->text().toLocal8Bit();
+            opt_len = getHexFromText(ba3.data(), ba3.length(), (unsigned char *)pDataBuffw[3], dataBuffLen);
+            if(opt_len > 0){
+                pXdma->opt_pack(opt_mode, pDataBuffw[3], opt_len, addr[3]);
+                opt_len = 0;
+            }
+        }
+
+        QString GroupMacDst = pUserUi->pPcieManage->pLineEditGroupDestMacW->text();
+        if(GroupMacDst != ""){
+            QByteArray ba4;
+            ba4 = pUserUi->pPcieManage->pLineEditGroupDestMacW->text().toLocal8Bit();
+            opt_len = getHexFromText(ba4.data(), ba4.length(), (unsigned char *)pDataBuffw[4], dataBuffLen);
+            if(opt_len > 0){
+                pXdma->opt_pack(opt_mode, pDataBuffw[4], opt_len, addr[4]);
+                opt_len = 0;
+            }
+        }
     }
 }
 
@@ -253,28 +253,34 @@ void MainWindow::opt_end(int rw)
             case 2: // DestMac
                 processDestMacData();
                 break;
-            case 3: // UnpackRx
+            case 3: // GroupSrcMac
+                processGroupSrcMacData();
+                break;
+            case 4: // GroupDestMac
+                processGroupDestMacData();
+                break;
+            case 5: // UnpackRx
                 processUnpackRxData();
                 break;
-            case 4: // GroupRx
+            case 6: // GroupRx
                 processGroupRxData();
                 break;
-            case 5: // UnpackTx
+            case 7: // UnpackTx
                 processUnpackTxData();
                 break;
-            case 6: // GroupTx
+            case 8: // GroupTx
                 processGroupTxData();
                 break;
-            case 7: // UnpackMacSrc
+            case 9: // UnpackMacSrc
                 processUnpackMacSrcData();
                 break;
-            case 8: // UnpackMacDst
+            case 10: // UnpackMacDst
                 processUnpackMacDstData();
                 break;
-            case 9: // GroupMacSrc
+            case 11: // GroupMacSrc
                 processGroupMacSrcData();
                 break;
-            case 10: // GroupMacDst
+            case 12: // GroupMacDst
                 processGroupMacDstData();
                 break;
             default:
@@ -289,7 +295,7 @@ void MainWindow::opt_end(int rw)
         }
 
         // 重启定时器
-        pTimer->start(90);
+        pTimer->start(75);
     });
 }
 
@@ -316,25 +322,37 @@ void MainWindow::processDestMacData()
     currentLineEdit->setText(strBuff[1]);
 }
 
+void MainWindow::processGroupSrcMacData()
+{
+    getTextFromHex((unsigned char *)pDataBuff[3], 6, strBuff[2]);
+    currentLineEdit->setText(strBuff[2]);
+}
+
+void MainWindow::processGroupDestMacData()
+{
+    getTextFromHex((unsigned char *)pDataBuff[4], 6, strBuff[3]);
+    currentLineEdit->setText(strBuff[3]);
+}
+
 void MainWindow::processUnpackRxData()
 {
     // 假设 UnpackRx 是一个整数值
-    unsigned int UnpackRx = *(unsigned int*)pDataBuff[3];
+    unsigned int UnpackRx = *(unsigned int*)pDataBuff[5];
     UnpackRx = UnpackRx / 10 * 8 / 100;
     unsigned int UnpackRxchart = UnpackRx;
     if(UnpackRx < 1000){
-        QString speed = QString::number(UnpackRx);
-        currentLineEdit->setText(speed+"Kbps");
+        double speed = static_cast<double>(UnpackRx);
+        QString speedString = QString::number(speed, 'f', 1);
+        currentLineEdit->setText(speedString+"Kbps");
     }else if(UnpackRx >= 1000 && UnpackRx < 1000000){
-        UnpackRx = UnpackRx / 1000;
-        QString speed = QString::number(UnpackRx);
-        currentLineEdit->setText(speed+"Mbps");
+        double speed = static_cast<double>(UnpackRx) / 1000;
+        QString speedString = QString::number(speed, 'f', 1);
+        currentLineEdit->setText(speedString+"Mbps");
     }else {
-        UnpackRx = UnpackRx / 1000000;
-        QString speed = QString::number(UnpackRx);
-        currentLineEdit->setText(speed+"Gbps");
+        double speed = static_cast<double>(UnpackRx) / 1000000;
+        QString speedString = QString::number(speed, 'f', 1);
+        currentLineEdit->setText(speedString+"Gbps");
     }
-
     if (pUserUi->ChartManager->chart->series().contains(pUserUi->ChartManager->lineSeriesUnpackRx)) {
         pUserUi->ChartManager->addDataToUnpackRx(timeCounter, UnpackRxchart);
         ++timeCounter;
@@ -344,20 +362,21 @@ void MainWindow::processUnpackRxData()
 void MainWindow::processGroupRxData()
 {
     // 假设 GroupRx 是一个整数值
-    unsigned int GroupRx = *(unsigned int*)pDataBuff[4];
+    unsigned int GroupRx = *(unsigned int*)pDataBuff[6];
     GroupRx = GroupRx / 10 * 8 / 100;
     unsigned int GroupRxchart = GroupRx;
     if(GroupRx < 1000){
-        QString speed = QString::number(GroupRx);
-        currentLineEdit->setText(speed+"Kbps");
+        double speed = static_cast<double>(GroupRx);
+        QString speedString = QString::number(speed, 'f', 1);
+        currentLineEdit->setText(speedString+"Kbps");
     }else if(GroupRx >= 1000 && GroupRx < 1000000){
-        GroupRx = GroupRx / 1000;
-        QString speed = QString::number(GroupRx);
-        currentLineEdit->setText(speed+"Mbps");
+        double speed = static_cast<double>(GroupRx) / 1000;
+        QString speedString = QString::number(speed, 'f', 1);
+        currentLineEdit->setText(speedString+"Mbps");
     }else {
-        GroupRx = GroupRx / 1000000;
-        QString speed = QString::number(GroupRx);
-        currentLineEdit->setText(speed+"Gbps");
+        double speed = static_cast<double>(GroupRx) / 1000000;
+        QString speedString = QString::number(speed, 'f', 1);
+        currentLineEdit->setText(speedString+"Gbps");
     }
     if (pUserUi->ChartManager->chart->series().contains(pUserUi->ChartManager->lineSeriesGroupRx)) {
         pUserUi->ChartManager->addDataToGroupRx(timeCounter, GroupRxchart);
@@ -369,20 +388,21 @@ void MainWindow::processGroupRxData()
 void MainWindow::processUnpackTxData()
 {
     // 假设 UnpackTx 是一个整数值
-    unsigned int UnpackTx = *(unsigned int*)pDataBuff[5];
+    unsigned int UnpackTx = *(unsigned int*)pDataBuff[7];
     UnpackTx = UnpackTx / 10 * 8 / 100;
     unsigned int UnpackTxchart = UnpackTx;
     if(UnpackTx < 1000){
-        QString speed = QString::number(UnpackTx);
-        currentLineEdit->setText(speed+"Kbps");
+        double speed = static_cast<double>(UnpackTx);
+        QString speedString = QString::number(speed, 'f', 1);
+        currentLineEdit->setText(speedString+"Kbps");
     }else if(UnpackTx >= 1000 && UnpackTx < 1000000){
-        UnpackTx = UnpackTx / 1000;
-        QString speed = QString::number(UnpackTx);
-        currentLineEdit->setText(speed+"Mbps");
+        double speed = static_cast<double>(UnpackTx) / 1000;
+        QString speedString = QString::number(speed, 'f', 1);
+        currentLineEdit->setText(speedString+"Mbps");
     }else {
-        UnpackTx = UnpackTx / 1000000;
-        QString speed = QString::number(UnpackTx);
-        currentLineEdit->setText(speed+"Gbps");
+        double speed = static_cast<double>(UnpackTx) / 1000000;
+        QString speedString = QString::number(speed, 'f', 1);
+        currentLineEdit->setText(speedString+"Gbps");
     }
     if (pUserUi->ChartManager->chart->series().contains(pUserUi->ChartManager->lineSeriesUnpackTx)) {
         pUserUi->ChartManager->addDataToUnpackTx(timeCounter, UnpackTxchart);
@@ -394,22 +414,22 @@ void MainWindow::processUnpackTxData()
 void MainWindow::processGroupTxData()
 {
     // 假设 GroupTx 是一个整数值
-    unsigned int GroupTx = *(unsigned int*)pDataBuff[6];
+    unsigned int GroupTx = *(unsigned int*)pDataBuff[8];
     GroupTx = GroupTx / 10 * 8 / 100;
     unsigned int GroupTxchart = GroupTx;
     if(GroupTx < 1000){
-        QString speed = QString::number(GroupTx);
-        currentLineEdit->setText(speed+"Kbps");
+        double speed = static_cast<double>(GroupTx);
+        QString speedString = QString::number(speed, 'f', 1);
+        currentLineEdit->setText(speedString+"Kbps");
     }else if(GroupTx >= 1000 && GroupTx < 1000000){
-        GroupTx = GroupTx / 1000;
-        QString speed = QString::number(GroupTx);
-        currentLineEdit->setText(speed+"Mbps");
+        double speed = static_cast<double>(GroupTx) / 1000;
+        QString speedString = QString::number(speed, 'f', 1);
+        currentLineEdit->setText(speedString+"Mbps");
     }else {
-        GroupTx = GroupTx / 1000000;
-        QString speed = QString::number(GroupTx);
-        currentLineEdit->setText(speed+"Gbps");
+        double speed = static_cast<double>(GroupTx) / 1000000;
+        QString speedString = QString::number(speed, 'f', 1);
+        currentLineEdit->setText(speedString+"Gbps");
     }
-
     if (pUserUi->ChartManager->chart->series().contains(pUserUi->ChartManager->lineSeriesGroupTx)) {
         pUserUi->ChartManager->addDataToGroupTx(timeCounter, GroupTxchart);
         ++timeCounter;
@@ -420,7 +440,7 @@ void MainWindow::processGroupTxData()
 void MainWindow::processUnpackMacSrcData()
 {
     // 假设 UnpackMacSrc 是一个整数值
-    int UnpackMacSrc = *(int*)pDataBuff[7];
+    unsigned int UnpackMacSrc = *(unsigned int*)pDataBuff[9];
     QString mac = QString::number(UnpackMacSrc);
     currentLineEdit->setText(mac);
 }
@@ -428,7 +448,7 @@ void MainWindow::processUnpackMacSrcData()
 void MainWindow::processUnpackMacDstData()
 {
     // 假设 UnpackMacDst 是一个整数值
-    int UnpackMacDst = *(int*)pDataBuff[8];
+    unsigned int UnpackMacDst = *(unsigned int*)pDataBuff[10];
     QString mac = QString::number(UnpackMacDst);
     currentLineEdit->setText(mac);
 }
@@ -436,7 +456,7 @@ void MainWindow::processUnpackMacDstData()
 void MainWindow::processGroupMacSrcData()
 {
     // 假设 GroupMacSrc 是一个整数值
-    int GroupMacSrc = *(int*)pDataBuff[9];
+    unsigned int GroupMacSrc = *(unsigned int*)pDataBuff[11];
     QString mac = QString::number(GroupMacSrc);
     currentLineEdit->setText(mac);
 }
@@ -444,7 +464,7 @@ void MainWindow::processGroupMacSrcData()
 void MainWindow::processGroupMacDstData()
 {
     // 假设 GroupMacDst 是一个整数值
-    int GroupMacDst = *(int*)pDataBuff[10];
+    unsigned int GroupMacDst = *(unsigned int*)pDataBuff[12];
     QString mac = QString::number(GroupMacDst);
     currentLineEdit->setText(mac);
 }

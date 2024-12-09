@@ -56,14 +56,18 @@ void chartmanager::setupChart()
 void chartmanager::addDataToUnpackRx(int time, unsigned int UnpackRx)
 {
     if(UnpackRx < 1000){
+        axisY->setTitleText("Speed (Kbps)");
+        axisY->setRange(0, 1000);
         lineSeriesUnpackRx->append(time, UnpackRx);
     }else if(UnpackRx >= 1000 && UnpackRx < 1000000){
         UnpackRx = UnpackRx / 1000;
         axisY->setTitleText("Speed (Mbps)");
+        axisY->setRange(0, 1000);
         lineSeriesUnpackRx->append(time, UnpackRx);
     }else {
         UnpackRx = UnpackRx / 1000000;
         axisY->setTitleText("Speed (Gbps)");
+        axisY->setRange(0, 10);
         lineSeriesUnpackRx->append(time, UnpackRx);
     }
     // If more than 10 seconds, adjust the axis
@@ -75,14 +79,18 @@ void chartmanager::addDataToUnpackRx(int time, unsigned int UnpackRx)
 void chartmanager::addDataToGroupRx(int time, unsigned int GroupRx)
 {
     if(GroupRx < 1000){
+        axisY->setTitleText("Speed (Kbps)");
+        axisY->setRange(0, 1000);
         lineSeriesGroupRx->append(time, GroupRx);
     }else if(GroupRx >= 1000 && GroupRx < 1000000){
         GroupRx = GroupRx / 1000;
         axisY->setTitleText("Speed (Mbps)");
+        axisY->setRange(0, 1000);
         lineSeriesGroupRx->append(time, GroupRx);
     }else {
         GroupRx = GroupRx / 1000000;
         axisY->setTitleText("Speed (Gbps)");
+        axisY->setRange(0, 10);
         lineSeriesGroupRx->append(time, GroupRx);
     }
     // If more than 10 seconds, adjust the axis
@@ -94,14 +102,18 @@ void chartmanager::addDataToGroupRx(int time, unsigned int GroupRx)
 void chartmanager::addDataToUnpackTx(int time, unsigned int UnpackTx)
 {
     if(UnpackTx < 1000){
+        axisY->setTitleText("Speed (Kbps)");
+        axisY->setRange(0, 1000);
         lineSeriesUnpackTx->append(time, UnpackTx);
     }else if(UnpackTx >= 1000 && UnpackTx < 1000000){
         UnpackTx = UnpackTx / 1000;
         axisY->setTitleText("Speed (Mbps)");
+        axisY->setRange(0, 1000);
         lineSeriesUnpackTx->append(time, UnpackTx);
     }else {
         UnpackTx = UnpackTx / 1000000;
         axisY->setTitleText("Speed (Gbps)");
+        axisY->setRange(0, 10);
         lineSeriesUnpackTx->append(time, UnpackTx);
     }
     // If more than 10 seconds, adjust the axis
@@ -113,14 +125,18 @@ void chartmanager::addDataToUnpackTx(int time, unsigned int UnpackTx)
 void chartmanager::addDataToGroupTx(int time, unsigned int GroupTx)
 {
     if(GroupTx < 1000){
+        axisY->setTitleText("Speed (Kbps)");
+        axisY->setRange(0, 1000);
         lineSeriesGroupTx->append(time, GroupTx);
     }else if(GroupTx >= 1000 && GroupTx < 1000000){
         GroupTx = GroupTx / 1000;
         axisY->setTitleText("Speed (Mbps)");
+        axisY->setRange(0, 1000);
         lineSeriesGroupTx->append(time, GroupTx);
     }else {
         GroupTx = GroupTx / 1000000;
         axisY->setTitleText("Speed (Gbps)");
+        axisY->setRange(0, 10);
         lineSeriesGroupTx->append(time, GroupTx);
     }
     // If more than 10 seconds, adjust the axis

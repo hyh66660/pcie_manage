@@ -35,6 +35,8 @@ private:
     void processMtuData();
     void processSrcMacData();
     void processDestMacData();
+    void processGroupSrcMacData();
+    void processGroupDestMacData();
     void processUnpackRxData();
     void processGroupRxData();
     void processUnpackTxData();
@@ -43,7 +45,6 @@ private:
     void processUnpackMacDstData();
     void processGroupMacSrcData();
     void processGroupMacDstData();
-    void processMacAddress(const QString& macStr, unsigned char* macBytes);
 
 
     int timeCounter=0;                  // 时间计数器，用于横坐标（秒）
@@ -55,8 +56,8 @@ private:
 
     // 存储DMA读取数据的缓冲区
     //char *pDataBuff;
-    char* pDataBuff[11];
-    char* pDataBuffw[3];
+    char* pDataBuff[13];
+    char* pDataBuffw[5];
     int dataBuffLen;
 
     // 存储需要读取的地址
@@ -74,7 +75,7 @@ private:
     int opt_len;
     int opt_mode;
 
-    QString strBuff[2];
+    QString strBuff[4];
 };
 
 #endif // MAINWINDOW_H
