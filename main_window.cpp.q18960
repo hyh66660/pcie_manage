@@ -1,0 +1,209 @@
+﻿#include "main_window.h"
+#include <QHBoxLayout>
+#include <QMetaObject>
+#include <QThread>
+#include <QTimer>
+
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent), currentIndex(0), currentLineEdit(nullptr)
+{
+    setWindowTitle(tr("东北大学(已连接)"));
+
+    QWidget *pCentralWidget = new QWidget;
+    setCentralWidget(pCentralWidget);
+
+    pCentralWidget->setObjectName("centerwidget");
+    pCentralWidget->setStyleSheet("#centerwidget{background:#888;border:1px solid #000;}");
+
+    // 初始化 UI 和布局
+    pUserUi = new user_ui;
+    QHBoxLayout *setUserLayout = new QHBoxLayout(pCentralWidget);
+    setUserLayout->setMargin(1);
+    setUserLayout->setSpacing(0);
+    setUserLayout->addWidget(pUserUi);
+
+    // 信号槽连接
+    resize(500, 600);
+    QObject::connect(pUserUi->pButStart, &QPushButton::clicked, this, &MainWindow::app_error);
+
+    // 初始化 DMA 程序
+    // 新建xdma读写实例
+    pXdma = new xdma_programe;
+    //if(pXdma->getDevice())
+    if(1)
+    {
+        pUserUi->pButStart->hide();
+    }
+    else
+    {
+        pUserUi->pButStart->setText(tr("设备未就绪"));
+        pUserUi->pPcieManage->hide();
+    }
+    pXdma = new xdma_programe;
+    pUserUi->pPcieManage->pComboBox->setCurrentIndex(2);
+
+    dataBuffLen = 1920 * 1080 * 3;
+    SYSTEM_INFO sys_info;
+    GetSystemInfo(&sys_info);
+    pDataBuff = (char *)_aligned_malloc(dataBuffLen, sys_info.dwPageSize);
+
+    // 初始化定时器
+    pTimer = new QTimer;
+    QObject::connect(pTimer, &QTimer::timeout, this, &MainWindow::read_next_addresses);
+
+    // 初始化地址和目标组件
+    initializeAddressAndTargets();
+
+    // 开启定时器和 DMA 线程
+    pTimer->start(500); // 每 500ms 读取一次
+    pXdma->start();
+}
+
+MainWindow::~MainWindow()
+{
+    _aligned_free(pDataBuff);
+}
+
+void MainWindow::initializeAddressAndTargets()
+{
+    // 设置要读取的 5 个地址
+    addresses = {0x10, 0x20, 0x30, 0x40, 0x50};
+
+    // 设置与之对应的目标 LineEdit
+    targetLineEdits = {
+        pUserUi->pPcieManage->pLineEditMtu,
+        pUserUi->pPcieManage->pLineEditSrcMac,
+        pUserUi->pPcieManage->pLineEditDestMac,
+        pUserUi->pPcieManage->pLineEditUnpackingSpeed,
+        pUserUi->pPcieManage->pLineEditGroupingSpeed
+    };
+
+    // 确保地址和目标组件数量一致
+    Q_ASSERT(targetLineEdits.size() == addresses.size());
+}
+
+void MainWindow::app_error()
+{
+    // 错误处理代码，暂时不做任何操作
+}
+
+void MainWindow::read_next_addresses()
+{
+    if (addresses.isEmpty() || targetLineEdits.isEmpty())
+        return;
+
+    // 停止定时器，避免干扰当前操作
+    pTimer->stop();
+
+    // 读取每个地址
+    for (int i = 0; i < addresses.size(); ++i) {
+        currentAddr = addresses[i];
+        currentLineEdit = targetLineEdits[i];
+
+        // 配置 DMA 读取操作
+        opt_mode = 1; // 读取模式
+        opt_len = 8;  // 每次读取 8 字节
+        pXdma->opt_pack(opt_mode, pDataBuff, opt_len, currentAddr);
+
+        // 等待 100ms，确保 DMA 操作能顺利完成
+        QThread::msleep(100);
+    }
+
+    // 设置 1 秒后再次读取
+    pTimer->start(1000); // 1 秒后再次读取
+}
+
+void MainWindow::opt_end(int rw)
+{
+    // 使用 QTimer::singleShot 确保 UI 更新在主线程中
+    QTimer::singleShot(0, this, [=] {
+        if (rw == 0 && currentLineEdit) {
+            // 根据当前的地址和目标组件进行处理
+            processDataForCurrentAddress();
+        }
+        else if (currentLineEdit) {
+            currentLineEdit->setText(tr("读取失败"));
+        }
+
+        // 重启定时器
+        pTimer->start(1000); // 1秒后再次读取
+    });
+}
+
+void MainWindow::processDataForCurrentAddress()
+{
+    // 根据目标组件的不同，处理不同的数据
+    if (currentLineEdit == pUserUi->pPcieManage->pLineEditMtu) {
+        processMtuData();
+    }
+    else if (currentLineEdit == pUserUi->pPcieManage->pLineEditSrcMac) {
+        processSrcMacData();
+    }
+    else if (currentLineEdit == pUserUi->pPcieManage->pLineEditDestMac) {
+        processDestMacData();
+    }
+    else if (currentLineEdit == pUserUi->pPcieManage->pLineEditUnpackingSpeed) {
+        processUnpackingSpeedData();
+    }
+    else if (currentLineEdit == pUserUi->pPcieManage->pLineEditGroupingSpeed) {
+        processGroupingSpeedData();
+    }
+}
+
+void MainWindow::processMtuData()
+{
+    // 假设 MTU 数据是一个整数值
+    int mtu = *(int*)pDataBuff;
+    QString mtuData = QString::number(mtu);
+    currentLineEdit->setText(mtuData);
+}
+
+void MainWindow::processSrcMacData()
+{
+    // 假设 SrcMac 数据是 6 字节的 MAC 地址
+    QByteArray macData = QByteArray::fromRawData(pDataBuff, 6);
+    QString macString;
+
+    // 将每两个字符插入一个冒号分隔符
+    for (int i = 0; i < macData.size(); ++i) {
+        if (i > 0) {
+            macString += ":";
+        }
+        macString += QString::number(macData[i], 16).rightJustified(2, '0');  // 确保每个字节是两位十六进制
+    }
+
+    currentLineEdit->setText(macString);
+}
+
+void MainWindow::processDestMacData()
+{
+    // 假设 DestMac 数据是 6 字节的 MAC 地址
+    QByteArray macData = QByteArray::fromRawData(pDataBuff, 6);
+    QString macString;
+
+    // 将每两个字符插入一个冒号分隔符
+    for (int i = 0; i < macData.size(); ++i) {
+        if (i > 0) {
+            macString += ":";
+        }
+        macString += QString::number(macData[i], 16).rightJustified(2, '0');  // 确保每个字节是两位十六进制
+    }
+
+    currentLineEdit->setText(macString);
+}
+
+void MainWindow::processUnpackingSpeedData()
+{
+    // 假设 UnpackingSpeed 是一个整数值
+    int unpackingSpeed = *(int*)pDataBuff;
+    QString speed = QString::number(unpackingSpeed);
+    currentLineEdit->setText(speed);
+}
+
+void MainWindow::processGroupingSpeedData()
+{
+    // 假设 GroupingSpeed 是一个整数值
+    int groupingSpeed = *(int*)pDataBuff;
+    QString speed = QString::number(groupingSpeed);
+    currentLineEdit->setText(speed);
+}
