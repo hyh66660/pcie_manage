@@ -169,69 +169,95 @@ void MainWindow::pcie_opt()
     if(but == pUserUi->pPcieManage->pButWrite)
     {
         opt_mode = 4;
-        opt_len = 0;
 
-        QString textDec = pUserUi->pPcieManage->pLineEditMtuW->text();
-        if(textDec != ""){
+        QString mtuw = pUserUi->pPcieManage->pLineEditMtuW->text();
+        QString mtur = pUserUi->pPcieManage->pLineEditMtu->text();
+        if(mtuw != "" && mtuw != mtur){
             bool ok = false;
-            int value = textDec.toInt(&ok, 10);
+            int value = mtuw.toInt(&ok, 10);
             QString textHex = QString::number(value, 16).rightJustified(4, '0').toUpper();
             QByteArray ba0;
             ba0 = textHex.toLocal8Bit();
-            opt_len = getHexFromText(ba0.data(), ba0.length(), (unsigned char *)pDataBuffw[0], dataBuffLen);
-            if (opt_len == 2) {
-                std::swap(pDataBuffw[0][0], pDataBuffw[0][1]);
-            }
-            if(opt_len > 0){
-                qDebug() << "DMA写入: " << QByteArray::fromRawData(pDataBuffw[0], opt_len).toHex();
-                pXdma->opt_pack(opt_mode, pDataBuffw[0], opt_len, addr[0]);
-                opt_len = 0;
-            }
+            getHexFromText(ba0.data(), ba0.length(), (unsigned char *)pDataBuffw[0], dataBuffLen, 0);
+            std::swap(pDataBuffw[0][0], pDataBuffw[0][1]);
+            //if(opt_len > 0){
+            //    pXdma->opt_pack(opt_mode, pDataBuffw[0], opt_len, addr[0]);
+            //    opt_len = 0;
+            //}
+        }else {
+            bool ok = false;
+            int value = mtur.toInt(&ok, 10);
+            QString textHex = QString::number(value, 16).rightJustified(4, '0').toUpper();
+            QByteArray ba0;
+            ba0 = textHex.toLocal8Bit();
+            getHexFromText(ba0.data(), ba0.length(), (unsigned char *)pDataBuffw[0], dataBuffLen, 0);
         }
 
-        QString macSrc = pUserUi->pPcieManage->pLineEditSrcMacW->text();
-        if(macSrc != ""){
+        QString macSrcw = pUserUi->pPcieManage->pLineEditSrcMacW->text();
+        QString macSrcr = pUserUi->pPcieManage->pLineEditSrcMac->text();
+        if(macSrcw != "" && macSrcw != macSrcr){
             QByteArray ba1;
-            ba1 = pUserUi->pPcieManage->pLineEditSrcMacW->text().toLocal8Bit();
-            opt_len = getHexFromText(ba1.data(), ba1.length(), (unsigned char *)pDataBuffw[1], dataBuffLen);
-            if(opt_len > 0){
-                pXdma->opt_pack(opt_mode, pDataBuffw[1], opt_len, addr[1]);
-                opt_len = 0;
-            }
+            ba1 = macSrcw.toLocal8Bit();
+            getHexFromText(ba1.data(), ba1.length(), (unsigned char *)pDataBuffw[0], dataBuffLen, 4);
+            //if(opt_len > 0){
+            //    pXdma->opt_pack(opt_mode, pDataBuffw[1], opt_len, addr[1]);
+            //    opt_len = 0;
+            //}
+        }else{
+            QByteArray ba1;
+            ba1 = macSrcr.toLocal8Bit();
+            getHexFromText(ba1.data(), ba1.length(), (unsigned char *)pDataBuffw[0], dataBuffLen, 4);
         }
 
-        QString macDst = pUserUi->pPcieManage->pLineEditDestMacW->text();
-        if(macDst != ""){
+        QString macDstw = pUserUi->pPcieManage->pLineEditDestMacW->text();
+        QString macDstr = pUserUi->pPcieManage->pLineEditDestMac->text();
+        if(macDstw != "" && macDstw != macDstr){
             QByteArray ba2;
-            ba2 = pUserUi->pPcieManage->pLineEditDestMacW->text().toLocal8Bit();
-            opt_len = getHexFromText(ba2.data(), ba2.length(), (unsigned char *)pDataBuffw[2], dataBuffLen);
-            if(opt_len > 0){
-                pXdma->opt_pack(opt_mode, pDataBuffw[2], opt_len, addr[2]);
-                opt_len = 0;
-            }
+            ba2 = macDstw.toLocal8Bit();
+            getHexFromText(ba2.data(), ba2.length(), (unsigned char *)pDataBuffw[0], dataBuffLen, 12);
+            //if(opt_len > 0){
+            //    pXdma->opt_pack(opt_mode, pDataBuffw[2], opt_len, addr[2]);
+            //    opt_len = 0;
+            //}
+        }else{
+            QByteArray ba2;
+            ba2 = macDstr.toLocal8Bit();
+            getHexFromText(ba2.data(), ba2.length(), (unsigned char *)pDataBuffw[0], dataBuffLen, 12);
         }
 
-        QString groupMacSrc = pUserUi->pPcieManage->pLineEditGroupSrcMacW->text();
-        if(groupMacSrc != ""){
+        QString groupMacSrcw = pUserUi->pPcieManage->pLineEditGroupSrcMacW->text();
+        QString groupMacSrcr = pUserUi->pPcieManage->pLineEditGroupSrcMac->text();
+        if(groupMacSrcw != "" && groupMacSrcw != groupMacSrcr){
             QByteArray ba3;
-            ba3 = pUserUi->pPcieManage->pLineEditGroupSrcMacW->text().toLocal8Bit();
-            opt_len = getHexFromText(ba3.data(), ba3.length(), (unsigned char *)pDataBuffw[3], dataBuffLen);
-            if(opt_len > 0){
-                pXdma->opt_pack(opt_mode, pDataBuffw[3], opt_len, addr[3]);
-                opt_len = 0;
-            }
+            ba3 = groupMacSrcw.toLocal8Bit();
+            getHexFromText(ba3.data(), ba3.length(), (unsigned char *)pDataBuffw[0], dataBuffLen, 20);
+            //if(opt_len > 0){
+            //    pXdma->opt_pack(opt_mode, pDataBuffw[3], opt_len, addr[3]);
+            //    opt_len = 0;
+            //}
+        }else{
+            QByteArray ba3;
+            ba3 = groupMacSrcr.toLocal8Bit();
+            getHexFromText(ba3.data(), ba3.length(), (unsigned char *)pDataBuffw[0], dataBuffLen, 20);
         }
 
-        QString GroupMacDst = pUserUi->pPcieManage->pLineEditGroupDestMacW->text();
-        if(GroupMacDst != ""){
+        QString GroupMacDstw = pUserUi->pPcieManage->pLineEditGroupDestMacW->text();
+        QString GroupMacDstr = pUserUi->pPcieManage->pLineEditGroupDestMac->text();
+        if(GroupMacDstw != "" && GroupMacDstw != GroupMacDstr){
             QByteArray ba4;
-            ba4 = pUserUi->pPcieManage->pLineEditGroupDestMacW->text().toLocal8Bit();
-            opt_len = getHexFromText(ba4.data(), ba4.length(), (unsigned char *)pDataBuffw[4], dataBuffLen);
-            if(opt_len > 0){
-                pXdma->opt_pack(opt_mode, pDataBuffw[4], opt_len, addr[4]);
-                opt_len = 0;
-            }
+            ba4 = GroupMacDstw.toLocal8Bit();
+            getHexFromText(ba4.data(), ba4.length(), (unsigned char *)pDataBuffw[0], dataBuffLen, 28);
+            //if(opt_len > 0){
+            //    pXdma->opt_pack(opt_mode, pDataBuffw[4], opt_len, addr[4]);
+            //    opt_len = 0;
+            //}
+        }else{
+            QByteArray ba4;
+            ba4 = GroupMacDstr.toLocal8Bit();
+            getHexFromText(ba4.data(), ba4.length(), (unsigned char *)pDataBuffw[0], dataBuffLen, 28);
         }
+        pXdma->opt_pack(opt_mode, pDataBuffw[0], 34, addr[0]);
+
     }
 }
 
@@ -262,11 +288,11 @@ void MainWindow::opt_end(int rw)
             case 5: // UnpackRx
                 processUnpackRxData();
                 break;
-            case 6: // GroupRx
-                processGroupRxData();
-                break;
-            case 7: // UnpackTx
+            case 6: // UnpackTx
                 processUnpackTxData();
+                break;
+            case 7: // GroupRx
+                processGroupRxData();
                 break;
             case 8: // GroupTx
                 processGroupTxData();

@@ -157,10 +157,10 @@ pcie_manage::pcie_manage(QWidget *parent)
     pLayout->addWidget(pLineEditGroupMacDst, 8, 3);
 }
 
-int getHexFromText(char *pParseData, int parseLen, unsigned char *pBackData, int maxlen)
+int getHexFromText(char *pParseData, int parseLen, unsigned char *pBackData, int maxlen, int cot)
 {
     int i;
-    int cot=0;
+    //int cot=0;
     int sub=0;
     unsigned char d0;
     unsigned char d1;

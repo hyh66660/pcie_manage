@@ -59,7 +59,7 @@ public:
     QTextEdit *pTextEdit;
 };
 
-int getHexFromText(char *pParseData, int parseLen, unsigned char *pBackData, int maxlen);
+int getHexFromText(char *pParseData, int parseLen, unsigned char *pBackData, int maxlen, int cot);
 void getTextFromHex(unsigned char *pData, int len, QString &str);
 
 #endif // PCIE_MANAGE_H
