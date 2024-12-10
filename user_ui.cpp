@@ -45,8 +45,8 @@ user_ui::user_ui(QWidget *parent)
 
     // 创建按钮并添加到垂直布局中
     btnShowUnpackRx = new QPushButton("UnpackRx Speed", this);
-    btnShowGroupRx = new QPushButton("GroupRx Speed", this);
-    btnShowUnpackTx = new QPushButton("UnpackTx Speed", this);
+    btnShowGroupRx = new QPushButton("UnpackTx Speed", this);
+    btnShowUnpackTx = new QPushButton("GroupRx Speed", this);
     btnShowGroupTx = new QPushButton("GroupTx Speed", this);
     btnShowUnpackRx->setStyleSheet("QPushButton{"
                                          "background-color:rgba(0, 0, 0, 50);"

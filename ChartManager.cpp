@@ -166,7 +166,7 @@ void chartmanager::showGroupRxChart()
         chart->removeAllSeries();
         lineSeriesGroupRx = new QLineSeries();
         chart->addSeries(lineSeriesGroupRx);      // 添加 GroupRx 系列
-        chart->setTitle("GroupRx Speed Over Time");
+        chart->setTitle("UnpackTx Speed Over Time");
 
         chart->setAxisX(axisX, lineSeriesGroupRx);
         chart->setAxisY(axisY, lineSeriesGroupRx);
@@ -181,7 +181,7 @@ void chartmanager::showUnpackTxChart()
         chart->removeAllSeries();
         lineSeriesUnpackTx = new QLineSeries();
         chart->addSeries(lineSeriesUnpackTx);     // 添加 UnpackRx 系列
-        chart->setTitle("UnpackTx Speed Over Time");
+        chart->setTitle("GroupRx Speed Over Time");
 
         chart->setAxisX(axisX, lineSeriesUnpackTx);
         chart->setAxisY(axisY, lineSeriesUnpackTx);

@@ -191,6 +191,7 @@ void MainWindow::pcie_opt()
             QByteArray ba0;
             ba0 = textHex.toLocal8Bit();
             getHexFromText(ba0.data(), ba0.length(), (unsigned char *)pDataBuffw[0], dataBuffLen, 0);
+            std::swap(pDataBuffw[0][0], pDataBuffw[0][1]);
         }
 
         QString macSrcw = pUserUi->pPcieManage->pLineEditSrcMacW->text();
@@ -288,11 +289,11 @@ void MainWindow::opt_end(int rw)
             case 5: // UnpackRx
                 processUnpackRxData();
                 break;
-            case 6: // UnpackTx
-                processUnpackTxData();
-                break;
-            case 7: // GroupRx
+            case 6: // UnpackTxGroupRx
                 processGroupRxData();
+                break;
+            case 7: //
+                processUnpackTxData();
                 break;
             case 8: // GroupTx
                 processGroupTxData();
