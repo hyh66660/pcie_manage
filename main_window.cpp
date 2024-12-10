@@ -374,7 +374,7 @@ void MainWindow::processUnpackRxData()
         QString speedString = QString::number(speed, 'f', 1);
         currentLineEdit->setText(speedString+"Gbps");
     }
-    pUserUi->ChartManagerUnpackRx->addDataToUnpackRx(timeCounter, UnpackRxchart);
+    pUserUi->ChartManagerUnpackRx->addDataToUnpackRx(timeCounter, UnpackRxchart, "UnpackRx");
     //++timeCounter;
 }
 
@@ -397,7 +397,7 @@ void MainWindow::processGroupRxData()
         QString speedString = QString::number(speed, 'f', 1);
         currentLineEdit->setText(speedString+"Gbps");
     }
-    pUserUi->ChartManagerGroupRx->addDataToUnpackRx(timeCounter, GroupRxchart);
+    pUserUi->ChartManagerGroupRx->addDataToUnpackRx(timeCounter, GroupRxchart, "UnpackTx");
     //++timeCounter;
 }
 
@@ -420,7 +420,7 @@ void MainWindow::processUnpackTxData()
         QString speedString = QString::number(speed, 'f', 1);
         currentLineEdit->setText(speedString+"Gbps");
     }
-    pUserUi->ChartManagerUnpackTx->addDataToUnpackRx(timeCounter, UnpackTxchart);
+    pUserUi->ChartManagerUnpackTx->addDataToUnpackRx(timeCounter, UnpackTxchart, "GroupRx");
     //++timeCounter;
 }
 
@@ -443,7 +443,7 @@ void MainWindow::processGroupTxData()
         QString speedString = QString::number(speed, 'f', 1);
         currentLineEdit->setText(speedString+"Gbps");
     }
-    pUserUi->ChartManagerGroupTx->addDataToUnpackRx(timeCounter, GroupTxchart);
+    pUserUi->ChartManagerGroupTx->addDataToUnpackRx(timeCounter, GroupTxchart, "GroupTx");
     ++timeCounter;
 }
 

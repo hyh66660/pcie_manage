@@ -19,7 +19,7 @@ public:
     explicit chartmanager(QWidget *parent = nullptr);
     ~chartmanager();
 
-    void addDataToUnpackRx(int time, unsigned int unpackRx);
+    void addDataToUnpackRx(int time, unsigned int unpackRx, QString name);
 
 
     QChart *chart;

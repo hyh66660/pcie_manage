@@ -47,8 +47,9 @@ void chartmanager::setupChart()
     chart->setAxisY(axisY, lineSeriesUnpackRx);
 }
 
-void chartmanager::addDataToUnpackRx(int time, unsigned int UnpackRx)
+void chartmanager::addDataToUnpackRx(int time, unsigned int UnpackRx, QString name)
 {
+    chart->setTitle(name + " Speed Over Time");
     if(UnpackRx < 1000){
         axisY->setTitleText("Speed (Kbps)");
         axisY->setRange(0, 1000);
