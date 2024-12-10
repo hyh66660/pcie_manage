@@ -20,20 +20,11 @@ public:
     ~chartmanager();
 
     void addDataToUnpackRx(int time, unsigned int unpackRx);
-    void addDataToGroupRx(int time, unsigned int groupRx);
-    void addDataToUnpackTx(int time, unsigned int unpackTx);
-    void addDataToGroupTx(int time, unsigned int groupTx);
 
-    void showUnpackRxChart();
-    void showGroupRxChart();
-    void showUnpackTxChart();
-    void showGroupTxChart();
 
     QChart *chart;
     QLineSeries *lineSeriesUnpackRx;
-    QLineSeries *lineSeriesGroupRx;
-    QLineSeries *lineSeriesUnpackTx;
-    QLineSeries *lineSeriesGroupTx;
+
     QValueAxis *axisX;
     QValueAxis *axisY;
     QChartView *chartView;

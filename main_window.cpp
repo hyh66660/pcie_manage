@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     // 信号槽连接
-    resize(1200, 500);
+    resize(1200, 1000);
     QObject::connect(pUserUi->pButStart, &QPushButton::clicked, this, &MainWindow::app_error);
 
     // 初始化 DMA 程序
@@ -43,12 +43,11 @@ MainWindow::MainWindow(QWidget *parent)
     else
     {
         pUserUi->pButStart->setText(tr("设备未就绪"));
-        pUserUi->ChartManager->hide();
+        pUserUi->ChartManagerUnpackRx->hide();
+        pUserUi->ChartManagerUnpackTx->hide();
+        pUserUi->ChartManagerGroupRx->hide();
+        pUserUi->ChartManagerGroupTx->hide();
         pUserUi->pPcieManage->hide();
-        pUserUi->btnShowGroupRx->hide();
-        pUserUi->btnShowUnpackRx->hide();
-        pUserUi->btnShowGroupTx->hide();
-        pUserUi->btnShowUnpackTx->hide();
     }
 
     dataBuffLen = 1024;
@@ -69,11 +68,6 @@ MainWindow::MainWindow(QWidget *parent)
     pTimer = new QTimer;
     QObject::connect(pTimer, &QTimer::timeout, this, &MainWindow::read_next_addresses);
     QObject::connect(pXdma, SIGNAL(opt_end(int)), this, SLOT(opt_end(int)));
-
-    QObject::connect(pUserUi->btnShowUnpackRx, &QPushButton::clicked, pUserUi->ChartManager, &chartmanager::showUnpackRxChart);
-    QObject::connect(pUserUi->btnShowGroupRx, &QPushButton::clicked, pUserUi->ChartManager, &chartmanager::showGroupRxChart);
-    QObject::connect(pUserUi->btnShowUnpackTx, &QPushButton::clicked, pUserUi->ChartManager, &chartmanager::showUnpackTxChart);
-    QObject::connect(pUserUi->btnShowGroupTx, &QPushButton::clicked, pUserUi->ChartManager, &chartmanager::showGroupTxChart);
 
     QObject::connect(pUserUi->pPcieManage->pButWrite, SIGNAL(clicked(bool)), this, SLOT(pcie_opt()));
 
@@ -380,10 +374,8 @@ void MainWindow::processUnpackRxData()
         QString speedString = QString::number(speed, 'f', 1);
         currentLineEdit->setText(speedString+"Gbps");
     }
-    if (pUserUi->ChartManager->chart->series().contains(pUserUi->ChartManager->lineSeriesUnpackRx)) {
-        pUserUi->ChartManager->addDataToUnpackRx(timeCounter, UnpackRxchart);
-        ++timeCounter;
-    }
+    pUserUi->ChartManagerUnpackRx->addDataToUnpackRx(timeCounter, UnpackRxchart);
+    //++timeCounter;
 }
 
 void MainWindow::processGroupRxData()
@@ -405,11 +397,8 @@ void MainWindow::processGroupRxData()
         QString speedString = QString::number(speed, 'f', 1);
         currentLineEdit->setText(speedString+"Gbps");
     }
-    if (pUserUi->ChartManager->chart->series().contains(pUserUi->ChartManager->lineSeriesGroupRx)) {
-        pUserUi->ChartManager->addDataToGroupRx(timeCounter, GroupRxchart);
-        ++timeCounter;
-    }
-
+    pUserUi->ChartManagerGroupRx->addDataToUnpackRx(timeCounter, GroupRxchart);
+    //++timeCounter;
 }
 
 void MainWindow::processUnpackTxData()
@@ -431,11 +420,8 @@ void MainWindow::processUnpackTxData()
         QString speedString = QString::number(speed, 'f', 1);
         currentLineEdit->setText(speedString+"Gbps");
     }
-    if (pUserUi->ChartManager->chart->series().contains(pUserUi->ChartManager->lineSeriesUnpackTx)) {
-        pUserUi->ChartManager->addDataToUnpackTx(timeCounter, UnpackTxchart);
-        ++timeCounter;
-    }
-
+    pUserUi->ChartManagerUnpackTx->addDataToUnpackRx(timeCounter, UnpackTxchart);
+    //++timeCounter;
 }
 
 void MainWindow::processGroupTxData()
@@ -457,11 +443,8 @@ void MainWindow::processGroupTxData()
         QString speedString = QString::number(speed, 'f', 1);
         currentLineEdit->setText(speedString+"Gbps");
     }
-    if (pUserUi->ChartManager->chart->series().contains(pUserUi->ChartManager->lineSeriesGroupTx)) {
-        pUserUi->ChartManager->addDataToGroupTx(timeCounter, GroupTxchart);
-        ++timeCounter;
-    }
-
+    pUserUi->ChartManagerGroupTx->addDataToUnpackRx(timeCounter, GroupTxchart);
+    ++timeCounter;
 }
 
 void MainWindow::processUnpackMacSrcData()

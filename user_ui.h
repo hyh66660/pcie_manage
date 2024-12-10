@@ -15,11 +15,10 @@ public:
 
     QPushButton *pButStart;
     pcie_manage *pPcieManage;
-    chartmanager *ChartManager;
-    QPushButton *btnShowUnpackRx;
-    QPushButton *btnShowGroupRx;
-    QPushButton *btnShowUnpackTx;
-    QPushButton *btnShowGroupTx;
+    chartmanager *ChartManagerUnpackRx;
+    chartmanager *ChartManagerUnpackTx;
+    chartmanager *ChartManagerGroupRx;
+    chartmanager *ChartManagerGroupTx;
 
 signals:
 
